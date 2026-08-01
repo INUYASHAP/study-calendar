@@ -6,57 +6,57 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== Theme 1: Nether Refined (精调下界) - 默认 ===== */
+/* ===== Theme 1: Nether 下界 (默认) —— MC 经典紫青秘境 ===== */
 :root {
-    --deep-dark: #0a0a1e;
-    --dark-bg: #141432;
-    --mid-dark: #1e1e45;
-    --panel-bg: #262656;
-    --accent-cyan: #00c8ff;
-    --accent-green: #2ecc71;
-    --accent-gold: #f1c40f;
-    --accent-purple: #9b59b6;
-    --accent-pink: #e91e63;
+    --deep-dark: #07071a;
+    --dark-bg: #121230;
+    --mid-dark: #1c1c4a;
+    --panel-bg: #28285e;
+    --accent-cyan: #00d4ff;
+    --accent-green: #33e1a1;
+    --accent-gold: #ffd84d;
+    --accent-purple: #b866ff;
+    --accent-pink: #ff5fb0;
     --text-primary: #ffffff;
-    --text-secondary: rgba(255,255,255,0.72);
+    --text-secondary: rgba(255,255,255,0.74);
     --text-dim: rgba(255,255,255,0.48);
-    --border-glow: rgba(0, 200, 255, 0.4);
+    --border-glow: rgba(0, 212, 255, 0.45);
     --font-cn: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     --font-pixel: 'Press Start 2P', 'Courier New', 'Consolas', monospace;
 }
 
-/* ===== Theme 2: Aurora Mystic (极光秘境) ===== */
+/* ===== Theme 2: Aurora 极光 —— 北境冰川薄荷秘境 ===== */
 :root[data-theme="aurora"] {
-    --deep-dark: #06061a;
-    --dark-bg: #10102a;
-    --mid-dark: #181838;
-    --panel-bg: #202045;
+    --deep-dark: #05101e;
+    --dark-bg: #0d1f35;
+    --mid-dark: #152c48;
+    --panel-bg: #1f3a5c;
     --accent-cyan: #5ee7df;
-    --accent-green: #7dcea0;
-    --accent-gold: #f7dc6f;
-    --accent-purple: #bb8fce;
-    --accent-pink: #f48fb1;
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255,255,255,0.7);
-    --text-dim: rgba(255,255,255,0.45);
-    --border-glow: rgba(94, 231, 223, 0.45);
+    --accent-green: #9be7b8;
+    --accent-gold: #ffe680;
+    --accent-purple: #c59dff;
+    --accent-pink: #ffb3d1;
+    --text-primary: #f5fbff;
+    --text-secondary: rgba(245,251,255,0.76);
+    --text-dim: rgba(245,251,255,0.5);
+    --border-glow: rgba(94, 231, 223, 0.5);
 }
 
-/* ===== Theme 3: Ember Glow (暖焰) ===== */
-:root[data-theme="ember"] {
-    --deep-dark: #1a0a08;
-    --dark-bg: #2a1210;
-    --mid-dark: #3a1e18;
-    --panel-bg: #4a2a22;
-    --accent-cyan: #ff8c42;
-    --accent-green: #c0392b;
-    --accent-gold: #f39c12;
-    --accent-purple: #8e44ad;
-    --accent-pink: #e67e22;
-    --text-primary: #ffffff;
-    --text-secondary: rgba(255,255,255,0.7);
-    --text-dim: rgba(255,255,255,0.45);
-    --border-glow: rgba(255, 140, 66, 0.4);
+/* ===== Theme 3: Forest 斑驳森林 —— 阳光透过树冠的苔藓秘境 ===== */
+:root[data-theme="forest"] {
+    --deep-dark: #08130c;
+    --dark-bg: #121f17;
+    --mid-dark: #1c2e22;
+    --panel-bg: #264530;
+    --accent-cyan: #88d967;
+    --accent-green: #4fb377;
+    --accent-gold: #d4a368;
+    --accent-purple: #8b7355;
+    --accent-pink: #e89b6c;
+    --text-primary: #f0f5e8;
+    --text-secondary: rgba(240,245,232,0.76);
+    --text-dim: rgba(240,245,232,0.5);
+    --border-glow: rgba(136, 217, 103, 0.45);
 }
 
 html, body {
@@ -3369,15 +3369,18 @@ body {
 }
 
 .theme-nether {
-    background: linear-gradient(135deg, #0a0a1e, #1e1e45, #00c8ff);
+    background: linear-gradient(135deg, #07071a 0%, #1c1c4a 40%, #b866ff 70%, #00d4ff 100%);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
 }
 
 .theme-aurora {
-    background: linear-gradient(135deg, #06061a, #202045, #5ee7df);
+    background: linear-gradient(135deg, #05101e 0%, #152c48 40%, #c59dff 70%, #5ee7df 100%);
+    box-shadow: 0 0 12px rgba(94, 231, 223, 0.4);
 }
 
-.theme-ember {
-    background: linear-gradient(135deg, #1a0a08, #4a2a22, #ff8c42);
+.theme-forest {
+    background: linear-gradient(135deg, #08130c 0%, #1c2e22 40%, #8b7355 70%, #88d967 100%);
+    box-shadow: 0 0 12px rgba(136, 217, 103, 0.4);
 }
 
 .theme-label {

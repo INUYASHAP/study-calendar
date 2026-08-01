@@ -284,7 +284,7 @@ function initParticles() {
     }
     
     function createParticle(canvas, type) {
-        const colors = ['#00e5ff', '#00ff88', '#ffd700', '#b44dff', '#ff4da6', '#ffffff'];
+        const colors = getParticleColors();
         const color = colors[Math.floor(Math.random() * colors.length)];
         return {
             x: Math.random() * canvas.width,
@@ -1290,7 +1290,27 @@ function applyTheme(themeName) {
     document.querySelectorAll('.theme-opt').forEach(opt => {
         opt.classList.toggle('active', opt.dataset.themeName === themeName);
     });
+    // 刷新粒子配色以跟随主题
+    refreshParticleTheme();
     save();
+}
+
+function getParticleColors() {
+    const style = getComputedStyle(document.documentElement);
+    const cyan = style.getPropertyValue('--accent-cyan').trim() || '#00d4ff';
+    const green = style.getPropertyValue('--accent-green').trim() || '#33e1a1';
+    const gold = style.getPropertyValue('--accent-gold').trim() || '#ffd84d';
+    const purple = style.getPropertyValue('--accent-purple').trim() || '#b866ff';
+    const pink = style.getPropertyValue('--accent-pink').trim() || '#ff5fb0';
+    return [cyan, green, gold, purple, pink, '#ffffff'];
+}
+
+function refreshParticleTheme() {
+    if (!particles || !particles.length) return;
+    const colors = getParticleColors();
+    particles.forEach(p => {
+        p.color = colors[Math.floor(Math.random() * colors.length)];
+    });
 }
 
 function bindThemeSwitcher() {
@@ -1305,6 +1325,11 @@ function bindThemeSwitcher() {
 }
 
 function initTheme() {
+    // 兼容已废弃的 ember 主题 -> 回退到 nether
+    if (state.theme === 'ember') {
+        state.theme = 'nether';
+        save();
+    }
     if (state.theme && state.theme !== 'nether') {
         document.documentElement.setAttribute('data-theme', state.theme);
     }
