@@ -212,7 +212,7 @@ let state = {
     makeUsedDays: {},
     currentDate: new Date(),
     currentTab: 'morning',
-    currentPage: 'tasks',
+    currentPage: 'task',
     shopCat: 'helmet',
     todayBackpack: [],
     timer: {
@@ -777,7 +777,7 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
             ${!isTimerActive && canMakeup && !completed ? `
                 <button class="hold-btn makeup-btn" data-task-id="${task.id}" data-makeup="true" style="margin-top:8px;background:linear-gradient(180deg,var(--accent-gold),#cc9900);border-color:var(--accent-gold);">
                     <div class="hold-label" style="flex-direction:column;">
-                        <span style="display:flex;align-items:center;gap:4px;">${getMCIcon('pencil_edit')} 补签 (按住)</span>
+                        <span style="display:flex;align-items:center;gap:4px;">${getMCIcon('pencil_edit')} 补签</span>
                     </div>
                 </button>
             ` : ''}
@@ -803,58 +803,30 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
     return card;
 }
 
-// ============ 按住交互 ============
+// ============ 单击交互 ============
 function bindHoldEvent(btn, task, dateKey) {
-    let holdTimer = null;
-    let startTime = 0;
-    let fillInterval = null;
-    const fillEl = btn.querySelector('.hold-fill');
-    
-    const startHold = (e) => {
-        e.preventDefault();
-        if (btn.classList.contains('disabled')) return;
-        
-        startTime = Date.now();
-        btn.style.transform = 'scale(0.98)';
-        btn.style.opacity = '0.9';
-        
-        fillInterval = setInterval(() => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(100, (elapsed / HOLD_DURATION) * 100);
-            if (fillEl) fillEl.style.width = progress + '%';
-        }, 30);
-        
-        holdTimer = setTimeout(() => {
-            clearInterval(fillInterval);
-            fillEl.style.width = '100%';
-            btn.style.opacity = '1';
-            btn.style.transform = 'scale(0.95)';
-            
-            const isMakeup = btn.dataset.makeup === 'true';
-            if (task.durationType === 'fixed' && !isMakeup) {
-                // 固定课程直接完成
-                completeTask(task, dateKey, false);
-            } else {
-                // 计时器任务
-                startTimer(task, dateKey, isMakeup);
-            }
-        }, HOLD_DURATION);
+    const handleClick = (e) => {
+        if (btn.classList.contains('disabled') || btn.disabled) return;
+
+        // 点击视觉反馈
+        btn.style.transform = 'scale(0.95)';
+        btn.style.opacity = '0.85';
+        setTimeout(() => {
+            btn.style.transform = '';
+            btn.style.opacity = '';
+        }, 150);
+
+        const isMakeup = btn.dataset.makeup === 'true';
+        if (task.durationType === 'fixed' && !isMakeup) {
+            // 固定课程直接完成
+            completeTask(task, dateKey, false);
+        } else {
+            // 计时器任务
+            startTimer(task, dateKey, isMakeup);
+        }
     };
-    
-    const cancelHold = () => {
-        clearTimeout(holdTimer);
-        clearInterval(fillInterval);
-        if (fillEl) fillEl.style.width = '0%';
-        btn.style.opacity = '1';
-        btn.style.transform = '';
-    };
-    
-    btn.addEventListener('mousedown', startHold);
-    btn.addEventListener('touchstart', startHold, { passive: false });
-    btn.addEventListener('mouseup', cancelHold);
-    btn.addEventListener('mouseleave', cancelHold);
-    btn.addEventListener('touchend', cancelHold);
-    btn.addEventListener('touchcancel', cancelHold);
+
+    btn.addEventListener('click', handleClick);
 }
 
 // ============ 计时器（内联版） ============

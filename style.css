@@ -957,7 +957,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding-bottom: 70px;
+    padding-bottom: 72px;
 }
 
 /* 角色装备面板 */
@@ -1780,6 +1780,7 @@ body {
     width: 0%;
     background: rgba(255,255,255,0.25);
     transition: width 0.05s linear;
+    pointer-events: none;
 }
 
 .hold-btn .hold-label {
@@ -1810,7 +1811,7 @@ body {
     border-color: var(--accent-gold);
 }
 
-/* 底部导航 */
+/* 底部导航 - MC风格常显 */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -1818,10 +1819,14 @@ body {
     transform: translateX(-50%);
     width: 100%;
     max-width: 500px;
-    background: var(--mid-dark);
-    border-top: 2px solid var(--border-glow);
+    background: linear-gradient(180deg, rgba(34, 34, 74, 0.95) 0%, rgba(20, 20, 50, 0.98) 100%);
+    border-top: 3px solid var(--accent-cyan);
+    box-shadow: 0 -4px 20px rgba(0, 229, 255, 0.25), 0 -2px 0 rgba(0, 229, 255, 0.15);
     display: flex;
-    z-index: 100;
+    z-index: 300;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .nav-btn {
@@ -1829,19 +1834,60 @@ body {
     background: none;
     border: none;
     color: var(--text-dim);
-    padding: 10px 4px;
+    padding: 8px 4px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
     font-size: 11px;
     font-family: var(--font-cn);
     cursor: pointer;
-    transition: color 0.2s;
+    transition: color 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 顶部指示器 - 像素方块风格 */
+.nav-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 24px;
+    height: 3px;
+    background: var(--accent-cyan);
+    border-radius: 0 0 3px 3px;
+    box-shadow: 0 0 8px var(--accent-cyan);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .nav-btn.active {
     color: var(--accent-cyan);
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+}
+
+.nav-btn.active::before {
+    transform: translateX(-50%) scaleX(1);
+}
+
+.nav-btn.active .nav-ico {
+    filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.7));
+    animation: navIconFloat 2s ease-in-out infinite;
+}
+
+@keyframes navIconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+.nav-btn:active {
+    transform: scale(0.92);
+    color: var(--accent-cyan);
+}
+
+.nav-btn:active .nav-ico {
+    transform: scale(1.1);
 }
 
 .nav-ico {
@@ -1849,6 +1895,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: filter 0.2s, transform 0.15s;
 }
 
 .nav-ico svg {
@@ -2687,6 +2734,7 @@ body {
     flex-direction: column;
     max-width: 500px;
     margin: 0 auto;
+    padding-bottom: 72px;
 }
 
 .shop-screen.active {
@@ -2890,6 +2938,10 @@ body {
     z-index: 200;
     display: none;
     flex-direction: column;
+    max-width: 500px;
+    margin: 0 auto;
+    overflow-y: auto;
+    padding-bottom: 72px;
 }
 
 .char-header {
@@ -2913,7 +2965,7 @@ body {
 
 .char-showcase {
     background: linear-gradient(180deg, #1a3a4e, #2a4a5e);
-    padding: 40px 20px;
+    padding: 40px 20px 24px;
     text-align: center;
 }
 
@@ -2965,6 +3017,8 @@ body {
     font-family: var(--font-cn);
     transition: all 0.2s;
     box-shadow: 0 0 10px rgba(180, 77, 255, 0.3);
+    position: relative;
+    z-index: 10;
 }
 
 .change-char-btn:hover {
@@ -3075,6 +3129,7 @@ body {
     max-width: 500px;
     margin: 0 auto;
     overflow-y: auto;
+    padding-bottom: 72px;
 }
 
 .stats-screen.active {
