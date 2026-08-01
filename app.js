@@ -834,7 +834,7 @@ function bindHoldEvent(btn, task, dateKey) {
 function startTimer(task, dateKey, isMakeup = false) {
     const workSec = (task.workMinutes || 45) * 60;
     const restSec = (task.restMinutes || 0) * 60;
-    
+
     state.timer = {
         active: true,
         taskId: task.id,
@@ -845,11 +845,11 @@ function startTimer(task, dateKey, isMakeup = false) {
         startTime: Date.now(),
         isPaused: false
     };
-    
+
     // 刷新任务卡片以显示内联计时器
     renderTasks();
     updateInlineTimerDisplay();
-    timerLoop();
+    startTimerInterval();
     save();
 }
 
@@ -884,23 +884,35 @@ function updateInlineTimerDisplay() {
     }
 }
 
-function timerLoop() {
-    if (!state.timer.active) return;
-    
-    if (!state.timer.isPaused) {
-        const elapsed = Math.floor((Date.now() - state.timer.startTime) / 1000);
-        state.timer.phaseRemainingSeconds = Math.max(0, state.timer.phaseRemainingSeconds - elapsed);
-        state.timer.startTime = Date.now() - (elapsed * 1000);
-        
-        updateInlineTimerDisplay();
-        
-        if (state.timer.phaseRemainingSeconds === 0) {
-            onPhaseComplete();
+// 计时器循环 - 每秒更新
+let timerInterval = null;
+
+function startTimerInterval() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!state.timer.active) {
+            clearInterval(timerInterval);
+            timerInterval = null;
             return;
         }
+        if (state.timer.isPaused) return;
+
+        state.timer.phaseRemainingSeconds = Math.max(0, state.timer.phaseRemainingSeconds - 1);
+        updateInlineTimerDisplay();
+
+        if (state.timer.phaseRemainingSeconds === 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            onPhaseComplete();
+        }
+    }, 1000);
+}
+
+function stopTimerInterval() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
     }
-    
-    setTimeout(timerLoop, 500);
 }
 
 function onPhaseComplete() {
@@ -917,7 +929,7 @@ function onPhaseComplete() {
             t.startTime = Date.now();
             showToast('学习完成！进入休息时间~');
             updateInlineTimerDisplay();
-            timerLoop();
+            startTimerInterval();
         } else {
             // 无休息阶段，直接完成
             finishTimerInline(t.taskId);
@@ -948,7 +960,8 @@ function resumeTimerInline(taskId) {
 
 function finishTimerInline(taskId) {
     if (!state.timer.active || state.timer.taskId !== taskId) return;
-    
+
+    stopTimerInterval();
     const task = findTaskById(taskId);
     const dateKey = getDateKey(state.currentDate);
     
@@ -1431,7 +1444,7 @@ function init() {
     if (state.timer && state.timer.active && state.timer.phaseRemainingSeconds > 0) {
         renderTasks();
         updateInlineTimerDisplay();
-        timerLoop();
+        startTimerInterval();
     }
     
     // 渲染初始数据
