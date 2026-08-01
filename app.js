@@ -717,11 +717,13 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
         const t = state.timer;
         const phaseLabel = t.phase === 'work' ? '学习中' : '休息中';
         const phaseColor = t.phase === 'work' ? 'var(--accent-cyan)' : 'var(--accent-green)';
+        const mm = Math.floor(t.phaseRemainingSeconds / 60).toString().padStart(2, '0');
+        const ss = (t.phaseRemainingSeconds % 60).toString().padStart(2, '0');
         inlineTimer = `
             <div class="inline-timer" data-task-id="${task.id}">
                 <div class="it-header">
                     <span class="it-phase" style="color:${phaseColor};">● ${phaseLabel}</span>
-                    <span class="it-countdown" id="it-countdown-${task.id}">00:00</span>
+                    <span class="it-countdown" id="it-countdown-${task.id}">${mm}:${ss}</span>
                 </div>
                 <div class="it-progress">
                     <div class="it-progress-fill" id="it-fill-${task.id}" style="width:0%;background:${phaseColor};"></div>
@@ -945,7 +947,9 @@ function pauseTimerInline(taskId) {
     if (!state.timer.active || state.timer.taskId !== taskId) return;
     state.timer.isPaused = true;
     state.timer.pausedTime = Date.now();
+    stopTimerInterval();
     renderTasks();
+    updateInlineTimerDisplay();
     save();
 }
 
@@ -955,6 +959,8 @@ function resumeTimerInline(taskId) {
     state.timer.startTime += pauseDur;
     state.timer.isPaused = false;
     renderTasks();
+    updateInlineTimerDisplay();
+    startTimerInterval();
     save();
 }
 
