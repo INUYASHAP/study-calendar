@@ -79,9 +79,10 @@ const TASK_DATA = {
             name: '英语',
             icon: 'book',
             desc: '从你最喜欢的游戏说起，英语会更容易从嘴巴里跑出来。',
-            durationLabel: '1小时',
+            durationLabel: '45分钟学习 + 15分钟休息',
             durationType: 'timer',
-            goalMinutes: 60,
+            workMinutes: 45,
+            restMinutes: 15,
             rewards: { exp: 10, coins: 3 }
         },
         {
@@ -90,9 +91,10 @@ const TASK_DATA = {
             name: '休息',
             icon: 'coffee',
             desc: '先离开屏幕喝口水，再让眼睛去窗外旅行一分钟。',
-            durationLabel: '15分钟',
+            durationLabel: '15分钟休息',
             durationType: 'timer',
-            goalMinutes: 15,
+            workMinutes: 15,
+            restMinutes: 0,
             rewards: { exp: 2, coins: 1 }
         },
         {
@@ -101,9 +103,10 @@ const TASK_DATA = {
             name: '学习',
             icon: 'pencil',
             desc: '先从最容易的一小项开始，大脑找到节奏后会越来越顺。',
-            durationLabel: '1小时',
+            durationLabel: '45分钟学习 + 15分钟休息',
             durationType: 'timer',
-            goalMinutes: 60,
+            workMinutes: 45,
+            restMinutes: 15,
             rewards: { exp: 10, coins: 3 }
         }
     ],
@@ -114,9 +117,10 @@ const TASK_DATA = {
             name: '运动锻炼',
             icon: 'running',
             desc: '跑步、跳绳、打球，让身体像史蒂夫挖钻石一样充满活力！',
-            durationLabel: '1小时',
+            durationLabel: '45分钟运动 + 15分钟休息',
             durationType: 'timer',
-            goalMinutes: 60,
+            workMinutes: 45,
+            restMinutes: 15,
             rewards: { exp: 8, coins: 3 }
         },
         {
@@ -127,7 +131,8 @@ const TASK_DATA = {
             desc: '和AI一起创作，你的想象力就是最强大的附魔剑！',
             durationLabel: '30分钟',
             durationType: 'timer',
-            goalMinutes: 30,
+            workMinutes: 30,
+            restMinutes: 0,
             rewards: { exp: 5, coins: 2 }
         }
     ],
@@ -211,9 +216,9 @@ let state = {
     shopCat: 'helmet',
     todayBackpack: [],
     timer: {
-        active: false, taskId: null, taskName: '', totalSeconds: 3600,
-        remainingSeconds: 3600, startTime: 0, isPaused: false,
-        pomodoroCount: 4, currentPomodoro: 0, segmentSeconds: 900
+        active: false, taskId: null, taskName: '',
+        phase: 'work', phaseRemainingSeconds: 2700,
+        totalSeconds: 2700, startTime: 0, isPaused: false
     }
 };
 
@@ -227,16 +232,26 @@ function load() {
         if (s) {
             Object.assign(state, JSON.parse(s));
             state.timer = state.timer || { 
-                active: false, taskId: null, taskName: '', 
-                totalSeconds: 3600, remainingSeconds: 3600, 
-                startTime: 0, isPaused: false,
-                pomodoroCount: 4, currentPomodoro: 0, segmentSeconds: 900
+                active: false, taskId: null, taskName: '',
+                phase: 'work', phaseRemainingSeconds: 2700,
+                totalSeconds: 2700, startTime: 0, isPaused: false
             };
-            // 兼容旧版本计时器
-            if (state.timer.pomodoroCount === undefined) {
-                state.timer.pomodoroCount = Math.max(1, Math.round(state.timer.totalSeconds / 900));
-                state.timer.currentPomodoro = 0;
-                state.timer.segmentSeconds = 900;
+            // 兼容旧版本计时器（含番茄钟字段）
+            if (state.timer.pomodoroCount !== undefined) {
+                const task = findTaskById(state.timer.taskId);
+                if (task) {
+                    state.timer.phase = 'work';
+                    state.timer.phaseRemainingSeconds = (task.workMinutes || 45) * 60;
+                    state.timer.totalSeconds = state.timer.phaseRemainingSeconds + (task.restMinutes || 0) * 60;
+                } else {
+                    state.timer.phaseRemainingSeconds = state.timer.totalSeconds || 2700;
+                    state.timer.totalSeconds = state.timer.phaseRemainingSeconds;
+                }
+                state.timer.phase = state.timer.phase || 'work';
+                delete state.timer.pomodoroCount;
+                delete state.timer.currentPomodoro;
+                delete state.timer.segmentSeconds;
+                delete state.timer.remainingSeconds;
             }
             // 恢复currentDate为Date对象
             if (typeof state.currentDate === 'string') {
@@ -678,7 +693,8 @@ function renderTasks() {
 
 function createTaskCard(task, completed, canMakeup, dateKey) {
     const card = document.createElement('div');
-    card.className = 'task-card' + (completed ? ' completed' : '');
+    const isTimerActive = state.timer.active && state.timer.taskId === task.id;
+    card.className = 'task-card' + (completed ? ' completed' : '') + (isTimerActive ? ' timer-active' : '');
     
     const rewards = task.rewards || {};
     let rewardStr = '';
@@ -695,6 +711,32 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
         locked = now < taskDate;
         if (locked) card.classList.add('locked');
     }
+
+    let inlineTimer = '';
+    if (isTimerActive) {
+        const t = state.timer;
+        const phaseLabel = t.phase === 'work' ? '学习中' : '休息中';
+        const phaseColor = t.phase === 'work' ? 'var(--accent-cyan)' : 'var(--accent-green)';
+        inlineTimer = `
+            <div class="inline-timer" data-task-id="${task.id}">
+                <div class="it-header">
+                    <span class="it-phase" style="color:${phaseColor};">● ${phaseLabel}</span>
+                    <span class="it-countdown" id="it-countdown-${task.id}">00:00</span>
+                </div>
+                <div class="it-progress">
+                    <div class="it-progress-fill" id="it-fill-${task.id}" style="width:0%;background:${phaseColor};"></div>
+                </div>
+                <div class="it-controls">
+                    ${t.isPaused ? `
+                        <button class="it-btn it-resume" id="it-resume-${task.id}">▶ 继续</button>
+                    ` : `
+                        <button class="it-btn it-pause" id="it-pause-${task.id}">⏸ 暂停</button>
+                    `}
+                    <button class="it-btn it-finish" id="it-finish-${task.id}">✓ 完成</button>
+                </div>
+            </div>
+        `;
+    }
     
     card.innerHTML = `
         <div class="tc-header">
@@ -709,10 +751,10 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
         <div class="tc-divider"></div>
         <div class="tc-reward">
             <div class="tc-reward-text">完成奖励：${rewardStr}</div>
-            ${task.durationType === 'timer' ? '<div class="tc-reward-note">按住1.4秒领取</div>' : ''}
         </div>
+        ${inlineTimer}
         <div class="tc-action">
-            ${completed ? `
+            ${isTimerActive ? '' : completed ? `
                 <button class="hold-btn disabled" disabled style="background:linear-gradient(180deg,#00a855,#008040);">
                     <div class="hold-label" style="flex-direction:column;">
                         <span style="display:flex;align-items:center;gap:4px;">${getMCIcon('check')} 已完成</span>
@@ -732,7 +774,7 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
                     </div>
                 </button>
             `}
-            ${canMakeup && !completed ? `
+            ${!isTimerActive && canMakeup && !completed ? `
                 <button class="hold-btn makeup-btn" data-task-id="${task.id}" data-makeup="true" style="margin-top:8px;background:linear-gradient(180deg,var(--accent-gold),#cc9900);border-color:var(--accent-gold);">
                     <div class="hold-label" style="flex-direction:column;">
                         <span style="display:flex;align-items:center;gap:4px;">${getMCIcon('pencil_edit')} 补签 (按住)</span>
@@ -746,6 +788,16 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
     const holdBtn = card.querySelector('.hold-btn:not(.disabled)');
     if (holdBtn) {
         bindHoldEvent(holdBtn, task, dateKey);
+    }
+
+    // 绑定内联计时器控件
+    if (isTimerActive) {
+        const pauseBtn = card.querySelector(`#it-pause-${task.id}`);
+        const resumeBtn = card.querySelector(`#it-resume-${task.id}`);
+        const finishBtn = card.querySelector(`#it-finish-${task.id}`);
+        if (pauseBtn) pauseBtn.onclick = () => pauseTimerInline(task.id);
+        if (resumeBtn) resumeBtn.onclick = () => resumeTimerInline(task.id);
+        if (finishBtn) finishBtn.onclick = () => finishTimerInline(task.id);
     }
     
     return card;
@@ -805,77 +857,159 @@ function bindHoldEvent(btn, task, dateKey) {
     btn.addEventListener('touchcancel', cancelHold);
 }
 
-// ============ 计时器 ============
-const POMODORO_SECONDS = 900; // 15分钟 = 1个番茄钟
+// ============ 计时器（内联版） ============
 
 function startTimer(task, dateKey, isMakeup = false) {
-    const totalSeconds = task.goalMinutes * 60;
-    const pomodoroCount = Math.max(1, Math.round(totalSeconds / POMODORO_SECONDS));
+    const workSec = (task.workMinutes || 45) * 60;
+    const restSec = (task.restMinutes || 0) * 60;
     
     state.timer = {
         active: true,
         taskId: task.id,
         taskName: task.name,
-        totalSeconds: totalSeconds,
-        remainingSeconds: totalSeconds,
+        phase: 'work',
+        phaseRemainingSeconds: workSec,
+        totalSeconds: workSec + restSec,
         startTime: Date.now(),
-        isPaused: false,
-        pomodoroCount: pomodoroCount,
-        currentPomodoro: 0,
-        segmentSeconds: POMODORO_SECONDS
+        isPaused: false
     };
     
-    document.getElementById('timerTaskName').textContent = task.name;
-    document.getElementById('timerIcon').innerHTML = getMCIcon(task.icon || 'clock');
-    document.getElementById('timerStatus').textContent = isMakeup ? '补签中，加油！' : '开始第一个番茄钟吧！';
-    document.getElementById('startTimerBtn').style.display = 'flex';
-    document.getElementById('pauseTimerBtn').style.display = 'none';
-    document.getElementById('completeTimerBtn').style.display = 'none';
-    document.getElementById('timerScreen').classList.add('active');
-    
-    // 初始化番茄钟进度
-    initPomodoroProgress(pomodoroCount);
-    
-    updateTimerDisplay();
+    // 刷新任务卡片以显示内联计时器
+    renderTasks();
+    updateInlineTimerDisplay();
     timerLoop();
     save();
 }
 
-function initPomodoroProgress(count) {
-    const dotsContainer = document.getElementById('pomodoroDots');
-    dotsContainer.innerHTML = '';
-    for (let i = 0; i < count; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'pomodoro-dot';
-        dotsContainer.appendChild(dot);
-    }
-    updatePomodoroDisplay();
-}
-
-function updatePomodoroDisplay() {
+function updateInlineTimerDisplay() {
     const t = state.timer;
-    const dots = document.querySelectorAll('.pomodoro-dot');
-    dots.forEach((dot, i) => {
-        dot.classList.remove('filled', 'active');
-        if (i < t.currentPomodoro) {
-            dot.classList.add('filled');
-        } else if (i === t.currentPomodoro && t.active) {
-            dot.classList.add('active');
-        }
-    });
-    const label = document.getElementById('pomodoroLabel');
-    if (label) {
-        label.textContent = `进度: ${t.currentPomodoro} / ${t.pomodoroCount}`;
+    if (!t.active) return;
+    
+    const cdEl = document.getElementById(`it-countdown-${t.taskId}`);
+    const fillEl = document.getElementById(`it-fill-${t.taskId}`);
+    if (!cdEl || !fillEl) return;
+    
+    const m = Math.floor(t.phaseRemainingSeconds / 60);
+    const s = t.phaseRemainingSeconds % 60;
+    cdEl.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    
+    // 进度：基于当前phase的进度
+    const task = findTaskById(t.taskId);
+    const phaseTotal = t.phase === 'work' 
+        ? (task ? task.workMinutes * 60 : 2700)
+        : (task ? task.restMinutes * 60 : 900);
+    const phaseElapsed = phaseTotal - t.phaseRemainingSeconds;
+    const progress = Math.min(100, (phaseElapsed / phaseTotal) * 100);
+    fillEl.style.width = progress + '%';
+    
+    // 更新phase颜色
+    const phaseColor = t.phase === 'work' ? 'var(--accent-cyan)' : 'var(--accent-green)';
+    fillEl.style.background = phaseColor;
+    const phaseEl = document.querySelector(`.inline-timer[data-task-id="${t.taskId}"] .it-phase`);
+    if (phaseEl) {
+        phaseEl.style.color = phaseColor;
+        phaseEl.textContent = `● ${t.phase === 'work' ? '学习中' : '休息中'}`;
     }
 }
 
-function triggerCelebration() {
-    const celebrate = document.getElementById('steveCelebrate');
-    celebrate.classList.add('active');
+function timerLoop() {
+    if (!state.timer.active) return;
+    
+    if (!state.timer.isPaused) {
+        const elapsed = Math.floor((Date.now() - state.timer.startTime) / 1000);
+        state.timer.phaseRemainingSeconds = Math.max(0, state.timer.phaseRemainingSeconds - elapsed);
+        state.timer.startTime = Date.now() - (elapsed * 1000);
+        
+        updateInlineTimerDisplay();
+        
+        if (state.timer.phaseRemainingSeconds === 0) {
+            onPhaseComplete();
+            return;
+        }
+    }
+    
+    setTimeout(timerLoop, 500);
+}
+
+function onPhaseComplete() {
+    const t = state.timer;
+    const task = findTaskById(t.taskId);
+    if (!task) { finishTimerInline(t.taskId); return; }
+    
+    if (t.phase === 'work') {
+        const restSec = (task.restMinutes || 0) * 60;
+        if (restSec > 0) {
+            // 切换到休息阶段
+            t.phase = 'rest';
+            t.phaseRemainingSeconds = restSec;
+            t.startTime = Date.now();
+            showToast('学习完成！进入休息时间~');
+            updateInlineTimerDisplay();
+            timerLoop();
+        } else {
+            // 无休息阶段，直接完成
+            finishTimerInline(t.taskId);
+        }
+    } else {
+        // 休息阶段完成
+        finishTimerInline(t.taskId);
+    }
+    save();
+}
+
+function pauseTimerInline(taskId) {
+    if (!state.timer.active || state.timer.taskId !== taskId) return;
+    state.timer.isPaused = true;
+    state.timer.pausedTime = Date.now();
+    renderTasks();
+    save();
+}
+
+function resumeTimerInline(taskId) {
+    if (!state.timer.active || state.timer.taskId !== taskId) return;
+    const pauseDur = Date.now() - state.timer.pausedTime;
+    state.timer.startTime += pauseDur;
+    state.timer.isPaused = false;
+    renderTasks();
+    save();
+}
+
+function finishTimerInline(taskId) {
+    if (!state.timer.active || state.timer.taskId !== taskId) return;
+    
+    const task = findTaskById(taskId);
+    const dateKey = getDateKey(state.currentDate);
+    
+    // 先重置计时器状态，确保 renderTasks 时不会显示内联计时器
+    state.timer = { 
+        active: false, taskId: null, taskName: '',
+        phase: 'work', phaseRemainingSeconds: 2700,
+        totalSeconds: 2700, startTime: 0, isPaused: false
+    };
+    
+    // 触发庆祝
+    triggerCardCelebration(taskId);
+    
+    // 标记任务完成（内部会调用 renderTasks）
+    if (task) {
+        completeTask(task, dateKey, false);
+    }
+    
+    save();
+}
+
+function triggerCardCelebration(taskId) {
+    const card = document.querySelector(`.task-card .inline-timer[data-task-id="${taskId}"]`);
+    if (!card) return;
+    const taskCard = card.closest('.task-card');
+    if (!taskCard) return;
+    
+    // 添加庆祝动画类
+    taskCard.classList.add('celebrating');
     
     // 触发庆祝粒子
     const particles = ['party', 'star', 'fire', 'heart', 'coin'];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 6; i++) {
         setTimeout(() => {
             const p = document.createElement('div');
             p.className = 'celebrate-particle';
@@ -884,163 +1018,12 @@ function triggerCelebration() {
             p.style.top = '30%';
             p.style.setProperty('--tx', ((Math.random() - 0.5) * 100) + 'px');
             p.style.setProperty('--ty', (-50 - Math.random() * 80) + 'px');
-            document.getElementById('timerScreen').appendChild(p);
-            setTimeout(() => p.remove(), 1000);
-        }, i * 100);
+            taskCard.appendChild(p);
+            setTimeout(() => p.remove(), 1200);
+        }, i * 120);
     }
     
-    // 1.5秒后停止动画
-    setTimeout(() => {
-        celebrate.classList.remove('active');
-    }, 1500);
-}
-
-function showSegmentReward(task) {
-    const segmentExp = Math.ceil(task.rewards.exp / state.timer.pomodoroCount);
-    const segmentCoins = Math.ceil(task.rewards.coins / state.timer.pomodoroCount);
-    
-    triggerCelebration();
-    
-    showReward(`${task.name} - 番茄钟 ${state.timer.currentPomodoro}/${state.timer.pomodoroCount}`, {
-        exp: segmentExp,
-        coins: segmentCoins,
-        gems: 0
-    });
-    
-    addRewards({ exp: segmentExp, coins: segmentCoins, gems: 0 });
-}
-
-function timerLoop() {
-    if (!state.timer.active) return;
-    
-    if (!state.timer.isPaused) {
-        const elapsed = Math.floor((Date.now() - state.timer.startTime) / 1000);
-        state.timer.remainingSeconds = Math.max(0, state.timer.totalSeconds - elapsed);
-        
-        // 检查是否完成一个番茄钟
-        const completedPomodoro = state.timer.currentPomodoro;
-        const currentSegmentIndex = Math.floor(elapsed / state.timer.segmentSeconds);
-        
-        if (currentSegmentIndex > state.timer.currentPomodoro) {
-            state.timer.currentPomodoro = Math.min(currentSegmentIndex, state.timer.pomodoroCount);
-            updatePomodoroDisplay();
-            
-            const task = findTaskById(state.timer.taskId);
-            if (task) {
-                showSegmentReward(task);
-            }
-            
-            // 检查是否全部完成
-            if (state.timer.currentPomodoro >= state.timer.pomodoroCount) {
-                finishTimer();
-                return;
-            } else {
-                // 重置当前段的开始时间
-                state.timer.startTime = Date.now() - (elapsed % state.timer.segmentSeconds) * 1000;
-            }
-        }
-        
-        updateTimerDisplay();
-        
-        if (state.timer.remainingSeconds === 0) {
-            finishTimer();
-            return;
-        }
-    }
-    
-    setTimeout(timerLoop, 500);
-}
-
-function updateTimerDisplay() {
-    const t = state.timer;
-    const m = Math.floor(t.remainingSeconds / 60);
-    const s = t.remainingSeconds % 60;
-    document.getElementById('timerCountdown').textContent = 
-        `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-    
-    const progress = (t.totalSeconds - t.remainingSeconds) / t.totalSeconds;
-    const ring = document.getElementById('ringFg');
-    const circumference = 565.48;
-    ring.style.strokeDashoffset = circumference * (1 - progress);
-    
-    save();
-}
-
-function pauseTimer() {
-    if (!state.timer.active) return;
-    if (!state.timer.isPaused) {
-        state.timer.isPaused = true;
-        state.timer.pausedTime = Date.now();
-        document.getElementById('pauseTimerBtn').style.display = 'none';
-        document.getElementById('completeTimerBtn').style.display = 'flex';
-        document.getElementById('timerStatus').textContent = '已暂停~';
-    } else {
-        const pauseDur = Date.now() - state.timer.pausedTime;
-        state.timer.startTime += pauseDur;
-        state.timer.isPaused = false;
-        document.getElementById('pauseTimerBtn').style.display = 'flex';
-        document.getElementById('completeTimerBtn').style.display = 'none';
-        document.getElementById('timerStatus').textContent = '继续加油！';
-    }
-    save();
-}
-
-function finishTimer() {
-    state.timer.active = false;
-    document.getElementById('timerStatus').textContent = '太棒了！所有番茄钟完成！';
-    document.getElementById('pauseTimerBtn').style.display = 'none';
-    document.getElementById('completeTimerBtn').style.display = 'flex';
-    document.getElementById('completeTimerBtn').querySelector('.tb-label').textContent = '领取全部奖励';
-    
-    // 最终庆祝
-    triggerCelebration();
-}
-
-function claimTimerCompletion() {
-    const timer = state.timer;
-    const task = findTaskById(timer.taskId);
-    const dateKey = getDateKey(state.currentDate);
-    
-    document.getElementById('timerScreen').classList.remove('active');
-    
-    // 只补发剩余奖励（因为分段奖励已在过程中发放）
-    if (task) {
-        // 计算已发放的分段奖励总和
-        const segmentExp = Math.ceil(task.rewards.exp / timer.pomodoroCount);
-        const segmentCoins = Math.ceil(task.rewards.coins / timer.pomodoroCount);
-        const totalSegmentExp = segmentExp * timer.pomodoroCount;
-        const totalSegmentCoins = segmentCoins * timer.pomodoroCount;
-        
-        // 补发差额（由于向上取整可能有误差）
-        const finalExp = task.rewards.exp - totalSegmentExp + segmentExp;
-        const finalCoins = task.rewards.coins - totalSegmentCoins + segmentCoins;
-        
-        // 显示最终完成奖励
-        showReward(`${task.name} - 全部完成！`, {
-            exp: Math.max(0, finalExp),
-            coins: Math.max(0, finalCoins),
-            gems: task.rewards.gems || 0
-        });
-        
-        // 确保至少加一次完整奖励
-        if (timer.currentPomodoro >= timer.pomodoroCount) {
-            addRewards({
-                exp: Math.max(0, finalExp),
-                coins: Math.max(0, finalCoins),
-                gems: task.rewards.gems || 0
-            });
-        }
-        
-        completeTask(task, dateKey, false);
-    }
-    
-    state.timer = { 
-        active: false, taskId: null, taskName: '', 
-        totalSeconds: 3600, remainingSeconds: 3600, 
-        startTime: 0, isPaused: false,
-        pomodoroCount: 4, currentPomodoro: 0, segmentSeconds: 900
-    };
-    save();
+    setTimeout(() => taskCard.classList.remove('celebrating'), 1500);
 }
 
 function findTaskById(id) {
@@ -1375,18 +1358,7 @@ function bindEvents() {
         btn.onclick = () => switchPage(btn.dataset.page);
     });
     
-    // 计时器控制
-    document.getElementById('startTimerBtn').onclick = () => {
-        state.timer.startTime = Date.now();
-        state.timer.isPaused = false;
-        document.getElementById('startTimerBtn').style.display = 'none';
-        document.getElementById('pauseTimerBtn').style.display = 'flex';
-        document.getElementById('timerStatus').textContent = '计时中...加油！';
-        timerLoop();
-        save();
-    };
-    document.getElementById('pauseTimerBtn').onclick = pauseTimer;
-    document.getElementById('completeTimerBtn').onclick = claimTimerCompletion;
+    // 计时器控制 - 已改为内联模式，按钮在 createTaskCard 中绑定
     document.getElementById('claimRewardBtn').onclick = () => {
         document.getElementById('rewardModal').classList.remove('active');
     };
@@ -1483,24 +1455,10 @@ function init() {
         showScreen('welcomeScreen');
     }
     
-    // 恢复计时器
-    if (state.timer && state.timer.active && state.timer.remainingSeconds > 0) {
-        document.getElementById('timerTaskName').textContent = state.timer.taskName;
-        document.getElementById('timerIcon').textContent = getTaskIcon(state.timer.taskId);
-        document.getElementById('timerScreen').classList.add('active');
-        
-        // 初始化番茄钟进度
-        initPomodoroProgress(state.timer.pomodoroCount || 4);
-        
-        if (state.timer.isPaused) {
-            document.getElementById('startTimerBtn').style.display = 'none';
-            document.getElementById('pauseTimerBtn').style.display = 'none';
-            document.getElementById('completeTimerBtn').style.display = 'flex';
-        } else {
-            document.getElementById('startTimerBtn').style.display = 'none';
-            document.getElementById('pauseTimerBtn').style.display = 'flex';
-        }
-        updateTimerDisplay();
+    // 恢复计时器 - 内联模式
+    if (state.timer && state.timer.active && state.timer.phaseRemainingSeconds > 0) {
+        renderTasks();
+        updateInlineTimerDisplay();
         timerLoop();
     }
     
@@ -1513,5 +1471,110 @@ function getTaskIcon(taskId) {
     const map = { english:'📚', exercise:'🏃', boxing:'🥊', study:'✏️', break:'☕', aiplay:'🎨' };
     return map[taskId] || '⏱️';
 }
+
+// 暴露给内联按钮使用
+window.startTimer = startTimer;
+window.pauseTimerInline = pauseTimerInline;
+window.resumeTimerInline = resumeTimerInline;
+window.finishTimerInline = finishTimerInline;
+window.switchPage = switchPage;
+
+// ============ 测试工具 ============
+window.__testTimer = function(workSec = 5, restSec = 3) {
+    const testTask = {
+        id: '__test_' + Date.now(),
+        smallTitle: '测试',
+        name: '⚡测试任务',
+        icon: 'redstone',
+        desc: `测试模式：${workSec}秒学习 + ${restSec}秒休息`,
+        durationLabel: `${workSec}秒+${restSec}秒`,
+        durationType: 'timer',
+        workMinutes: workSec / 60,
+        restMinutes: restSec / 60,
+        rewards: { exp: 50, coins: 20, gems: 1 }
+    };
+    
+    // 临时加入morning列表
+    TASK_DATA.morning.unshift(testTask);
+    
+    // 立即开始
+    startTimer(testTask, getDateKey(state.currentDate), false);
+    
+    console.log(`[测试] 计时器已启动：${workSec}秒学习 → ${restSec}秒休息 → 完成`);
+    console.log('[测试] 在控制台输入 __testCleanup() 可清除测试任务');
+};
+
+window.__testCleanup = function() {
+    TASK_DATA.morning = TASK_DATA.morning.filter(t => !t.id.startsWith('__test_'));
+    state.timer = { active: false, taskId: null, taskName: '', phase: 'work', phaseRemainingSeconds: 2700, totalSeconds: 2700, startTime: 0, isPaused: false };
+    save();
+    renderTasks();
+    console.log('[测试] 已清理测试数据');
+};
+
+window.__testSkipPhase = function() {
+    if (!state.timer.active) { console.log('[测试] 没有活跃的计时器'); return; }
+    const task = findTaskById(state.timer.taskId);
+    const phaseTotal = state.timer.phase === 'work' 
+        ? (task ? task.workMinutes * 60 : 60)
+        : (task ? task.restMinutes * 60 : 60);
+    state.timer.phaseRemainingSeconds = 1;
+    state.timer.startTime = Date.now() - (phaseTotal - 1) * 1000;
+    console.log('[测试] 已跳转到下一阶段');
+};
+
+// ============ 页面导航测试工具 ============
+window.__testNav = function() {
+    const results = [];
+    const screens = ['shop', 'character', 'stats'];
+    const pageNames = { shop: '商店', character: '英雄', stats: '成绩' };
+    
+    console.log('========== 页面导航测试 ==========');
+    
+    // 逐个测试每个页面的返回按钮
+    for (const screen of screens) {
+        // 进入页面
+        switchPage(screen);
+        
+        // 检查页面是否激活
+        const screenId = screen === 'character' ? 'charScreen' : screen + 'Screen';
+        const screenEl = document.getElementById(screenId);
+        const isActive = screenEl && screenEl.classList.contains('active');
+        
+        // 检查返回按钮是否存在
+        const backBtn = screenEl ? screenEl.querySelector('.back-btn') : null;
+        const hasBackBtn = !!backBtn;
+        
+        console.log(`[${pageNames[screen]}] 页面激活: ${isActive ? '✅' : '❌'}, 返回按钮: ${hasBackBtn ? '✅' : '❌'}`);
+        
+        if (hasBackBtn) {
+            // 点击返回按钮
+            backBtn.click();
+            
+            // 检查是否回到任务页面 (currentPage === 'task' 且当前页面未激活)
+            const isBackToTask = state.currentPage === 'task' && !screenEl.classList.contains('active');
+            
+            console.log(`  ↳ 返回任务页面: ${isBackToTask ? '✅' : '❌'}`);
+            results.push({ screen, isActive, hasBackBtn, isBackToTask });
+        } else {
+            results.push({ screen, isActive, hasBackBtn: false, isBackToTask: false });
+        }
+    }
+    
+    console.log('================================');
+    console.log('测试结果汇总:');
+    const allPassed = results.every(r => r.isActive && r.hasBackBtn && r.isBackToTask);
+    console.log(allPassed ? '✅ 所有页面返回按钮测试通过！' : '❌ 部分测试失败，请检查');
+    console.log('================================');
+    
+    return { allPassed, results };
+};
+
+window.__goTo = function(page) {
+    switchPage(page);
+    const names = { shop: '商店', character: '英雄', stats: '成绩', task: '任务' };
+    console.log(`[导航] 已跳转到: ${names[page] || page}`);
+    return `已进入${names[page] || page}页面`;
+};
 
 document.addEventListener('DOMContentLoaded', init);

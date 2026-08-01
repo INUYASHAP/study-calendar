@@ -7,7 +7,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>我的世界 · 学习冒险日历</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- 字体预连接 + 加载 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Press+Start+2P&display=swap" media="all">
+    <!-- 备用：使用系统字体确保可用 -->
+    <style>
+        /* 字体加载完成前使用fallback */
+        .it-countdown { font-family: 'Press Start 2P', 'Courier New', Consolas, monospace; }
+    </style>
 </head>
 <body>
     <div id="app">
@@ -103,7 +111,7 @@
                         <span class="btn-text-cn">进入传送门</span>
                         <span class="btn-arrow"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="16" height="16"><rect x="3" y="5" width="1" height="6" fill="#FFFFFF"/><rect x="4" y="4" width="1" height="8" fill="#FFFFFF"/><rect x="5" y="5" width="1" height="6" fill="#FFFFFF"/><rect x="6" y="6" width="1" height="4" fill="#FFFFFF"/><rect x="7" y="7" width="1" height="2" fill="#FFFFFF"/><rect x="8" y="8" width="1" height="1" fill="#FFFFFF"/><rect x="9" y="7" width="1" height="2" fill="#FFFFFF"/><rect x="10" y="6" width="1" height="4" fill="#FFFFFF"/><rect x="11" y="5" width="1" height="6" fill="#FFFFFF"/><rect x="12" y="5" width="1" height="6" fill="#FFFFFF"/></svg></span>
                     </div>
-                    <div class="btn-sub">按下1.4秒，传送到今天的冒险地图</div>
+                    <div class="btn-sub">点击进入今天的冒险地图</div>
                 </button>
                 
                 <div class="daily-tip" id="daily-tip"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="16" height="16" style="vertical-align:middle;"><rect x="7" y="1" width="2" height="2" fill="#FFD700"/><rect x="6" y="3" width="4" height="1" fill="#FFAA00"/><rect x="5" y="4" width="6" height="2" fill="#FFAA00"/><rect x="6" y="6" width="4" height="4" fill="#FFD700"/><rect x="7" y="10" width="2" height="1" fill="#FFAA00"/><rect x="7" y="11" width="2" height="3" fill="#FFD700"/><rect x="5" y="14" width="6" height="1" fill="#FFAA00"/><rect x="3" y="5" width="1" height="2" fill="#FFD700"/><rect x="12" y="5" width="1" height="2" fill="#FFD700"/><rect x="2" y="8" width="1" height="2" fill="#FFD700"/><rect x="13" y="8" width="1" height="2" fill="#FFD700"/></svg> 今日小提示：先做简单的任务，大脑热身更快哦！</div>
@@ -253,62 +261,8 @@
             </nav>
         </div>
 
-        <!-- 计时器全屏 -->
-        <div class="timer-screen" id="timerScreen">
-            <div class="timer-bg"></div>
-            <div class="timer-content">
-                <!-- 史蒂夫庆祝动画 -->
-                <div class="steve-celebrate" id="steveCelebrate">
-                    <svg viewBox="0 0 16 32" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" class="celebrate-svg">
-                        <rect x="4" y="0" width="8" height="1" fill="#3B2A1A"/>
-                        <rect x="3" y="1" width="10" height="2" fill="#3B2A1A"/>
-                        <rect x="4" y="3" width="8" height="4" fill="#F5C6A5"/>
-                        <rect x="3" y="3" width="1" height="4" fill="#3B2A1A"/>
-                        <rect x="12" y="3" width="1" height="4" fill="#3B2A1A"/>
-                        <rect x="6" y="4" width="1" height="1" fill="#5F85CF"/>
-                        <rect x="9" y="4" width="1" height="1" fill="#5F85CF"/>
-                        <rect x="7" y="6" width="2" height="1" fill="#8B6B4A"/>
-                        <rect x="5" y="9" width="6" height="7" fill="#3D5AFE"/>
-                        <rect x="4" y="9" width="1" height="7" fill="#3D5AFE"/>
-                        <rect x="11" y="9" width="1" height="7" fill="#3D5AFE"/>
-                        <rect x="5" y="16" width="6" height="1" fill="#8B6914"/>
-                        <rect x="5" y="17" width="3" height="6" fill="#3F51B5"/>
-                        <rect x="8" y="17" width="3" height="6" fill="#3F51B5"/>
-                        <rect x="5" y="24" width="3" height="2" fill="#4A4A4A"/>
-                        <rect x="8" y="24" width="3" height="2" fill="#4A4A4A"/>
-                    </svg>
-                </div>
-                <div class="timer-head" id="timerIcon"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="48" height="48"><rect x="5" y="2" width="6" height="1" fill="#C0C0C0"/><rect x="4" y="3" width="8" height="1" fill="#D0D0D0"/><rect x="3" y="4" width="10" height="1" fill="#E0E0E0"/><rect x="2" y="5" width="12" height="6" fill="#E8E8E8"/><rect x="3" y="11" width="10" height="1" fill="#D0D0D0"/><rect x="4" y="12" width="8" height="1" fill="#C0C0C0"/><rect x="5" y="13" width="6" height="1" fill="#B0B0B0"/><rect x="6" y="4" width="1" height="6" fill="#FF0000"/><rect x="8" y="4" width="1" height="4" fill="#000000"/><rect x="5" y="5" width="7" height="1" fill="#333333"/></svg></div>
-                <div class="timer-title" id="timerTaskName">任务名称</div>
-                <div class="timer-time" id="timerCountdown">60:00</div>
-                <!-- 番茄钟进度 -->
-                <div class="pomodoro-progress" id="pomodoroProgress">
-                    <div class="pomodoro-dots" id="pomodoroDots"></div>
-                    <div class="pomodoro-label" id="pomodoroLabel">进度: 0 / 4</div>
-                </div>
-                <div class="timer-ring" id="timerRing">
-                    <svg viewBox="0 0 200 200">
-                        <circle class="ring-bg" cx="100" cy="100" r="90"></circle>
-                        <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="90"></circle>
-                    </svg>
-                </div>
-                <div class="timer-status" id="timerStatus">准备好了吗？</div>
-                <div class="timer-buttons">
-                    <button class="timer-btn start" id="startTimerBtn">
-                        <span class="tb-icon"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="20" height="20"><rect x="3" y="2" width="10" height="12" fill="#00AA00"/><rect x="4" y="3" width="8" height="10" fill="#00CC00"/><rect x="5" y="4" width="6" height="8" fill="#00FF00"/><rect x="6" y="6" width="4" height="1" fill="#FFFFFF"/><rect x="7" y="8" width="2" height="1" fill="#FFFFFF"/><rect x="6" y="10" width="4" height="1" fill="#FFFFFF"/></svg></span>
-                        <span class="tb-label">开始冒险</span>
-                    </button>
-                    <button class="timer-btn pause" id="pauseTimerBtn" style="display:none;">
-                        <span class="tb-icon"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="20" height="20"><rect x="3" y="2" width="4" height="12" fill="#FFAA00"/><rect x="9" y="2" width="4" height="12" fill="#FFAA00"/><rect x="4" y="3" width="2" height="10" fill="#FFD700"/><rect x="10" y="3" width="2" height="10" fill="#FFD700"/></svg></span>
-                        <span class="tb-label">暂停</span>
-                    </button>
-                    <button class="timer-btn finish" id="completeTimerBtn" style="display:none;">
-                        <span class="tb-icon"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="20" height="20"><rect x="4" y="2" width="8" height="8" fill="#FFD700"/><rect x="5" y="1" width="6" height="1" fill="#FFD700"/><rect x="3" y="3" width="1" height="4" fill="#FFD700"/><rect x="12" y="3" width="1" height="4" fill="#FFD700"/><rect x="2" y="4" width="2" height="2" fill="#FFA500"/><rect x="12" y="4" width="2" height="2" fill="#FFA500"/><rect x="5" y="10" width="6" height="2" fill="#CD853F"/><rect x="4" y="12" width="8" height="2" fill="#8B4513"/><rect x="3" y="14" width="10" height="1" fill="#654321"/><rect x="7" y="4" width="2" height="3" fill="#FFFFFF"/><rect x="6" y="7" width="4" height="1" fill="#FFA500"/></svg></span>
-                        <span class="tb-label">完成!</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+        <!-- 计时器全屏（已改为内联模式，保留元素兼容） -->
+        <div class="timer-screen" id="timerScreen" style="display:none;"></div>
 
         <!-- 奖励飞行动画容器 -->
         <div class="reward-fly-layer" id="rewardFlyLayer"></div>
@@ -471,6 +425,9 @@
         <!-- 商店页面 -->
         <div class="shop-screen" id="shopScreen">
             <div class="shop-title-bar">
+                <button class="back-btn" id="shopBackBtn" onclick="switchPage('task')">
+                    <svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="16" height="16"><rect x="2" y="7" width="10" height="2" fill="#FFFFFF"/><rect x="2" y="6" width="2" height="4" fill="#FFFFFF"/><rect x="4" y="5" width="2" height="6" fill="#FFFFFF"/><rect x="6" y="4" width="2" height="8" fill="#FFFFFF"/></svg>
+                </button>
                 <span class="shop-heading"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="20" height="20" style="vertical-align:middle;"><rect x="2" y="3" width="12" height="1" fill="#8B4513"/><rect x="3" y="4" width="10" height="1" fill="#A0522D"/><rect x="2" y="5" width="12" height="10" fill="#DEB887"/><rect x="1" y="15" width="14" height="1" fill="#654321"/><rect x="7" y="1" width="2" height="3" fill="#8B4513"/><rect x="4" y="6" width="3" height="3" fill="#87CEEB"/><rect x="9" y="6" width="3" height="3" fill="#87CEEB"/><rect x="4" y="10" width="8" height="4" fill="#8B4513"/><rect x="7" y="11" width="2" height="3" fill="#654321"/><rect x="2" y="14" width="12" height="1" fill="#654321"/></svg> 装备商店</span>
                 <span class="shop-money"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="18" height="18" style="vertical-align:middle;"><rect x="5" y="3" width="6" height="1" fill="#FFD700"/><rect x="4" y="4" width="8" height="1" fill="#FFD700"/><rect x="3" y="5" width="10" height="6" fill="#FFAA00"/><rect x="4" y="11" width="8" height="1" fill="#FFD700"/><rect x="5" y="12" width="6" height="1" fill="#FFD700"/><rect x="6" y="6" width="4" height="4" fill="#FFC000"/><rect x="7" y="7" width="2" height="2" fill="#FFE680"/></svg> <span id="shopCoinVal">0</span></span>
             </div>
@@ -486,6 +443,12 @@
 
         <!-- 角色详情页 -->
         <div class="char-screen" id="charScreen">
+            <div class="char-header">
+                <button class="back-btn" onclick="switchPage('task')">
+                    <svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="16" height="16"><rect x="2" y="7" width="10" height="2" fill="#FFFFFF"/><rect x="2" y="6" width="2" height="4" fill="#FFFFFF"/><rect x="4" y="5" width="2" height="6" fill="#FFFFFF"/><rect x="6" y="4" width="2" height="8" fill="#FFFFFF"/></svg>
+                </button>
+                <span class="char-title">我的英雄</span>
+            </div>
             <div class="char-showcase">
                 <div class="char-big" id="bigCharacter">
                     <!-- 史蒂夫像素画 SVG -->
@@ -564,7 +527,12 @@
 
         <!-- 成绩页面 -->
         <div class="stats-screen" id="statsScreen">
-            <div class="stats-title-bar"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="18" height="18" style="vertical-align:middle;"><rect x="1" y="10" width="2" height="4" fill="#00CCFF"/><rect x="3" y="6" width="2" height="8" fill="#00CCFF"/><rect x="5" y="8" width="2" height="6" fill="#00CCFF"/><rect x="7" y="4" width="2" height="10" fill="#00CCFF"/><rect x="9" y="7" width="2" height="7" fill="#00CCFF"/><rect x="11" y="2" width="2" height="12" fill="#00CCFF"/><rect x="1" y="14" width="14" height="1" fill="#0088AA"/><rect x="1" y="1" width="1" height="13" fill="#0088AA"/><rect x="14" y="1" width="1" height="13" fill="#0088AA"/></svg> 冒险战绩</div>
+            <div class="stats-title-bar">
+                <button class="back-btn" onclick="switchPage('task')">
+                    <svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="16" height="16"><rect x="2" y="7" width="10" height="2" fill="#FFFFFF"/><rect x="2" y="6" width="2" height="4" fill="#FFFFFF"/><rect x="4" y="5" width="2" height="6" fill="#FFFFFF"/><rect x="6" y="4" width="2" height="8" fill="#FFFFFF"/></svg>
+                </button>
+                <svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="18" height="18" style="vertical-align:middle;"><rect x="1" y="10" width="2" height="4" fill="#00CCFF"/><rect x="3" y="6" width="2" height="8" fill="#00CCFF"/><rect x="5" y="8" width="2" height="6" fill="#00CCFF"/><rect x="7" y="4" width="2" height="10" fill="#00CCFF"/><rect x="9" y="7" width="2" height="7" fill="#00CCFF"/><rect x="11" y="2" width="2" height="12" fill="#00CCFF"/><rect x="1" y="14" width="14" height="1" fill="#0088AA"/><rect x="1" y="1" width="1" height="13" fill="#0088AA"/><rect x="14" y="1" width="1" height="13" fill="#0088AA"/></svg> 冒险战绩
+            </div>
             <div class="stats-cards">
                 <div class="s-card">
                     <div class="s-icon"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" width="28" height="28"><rect x="4" y="2" width="8" height="8" fill="#FFD700"/><rect x="5" y="1" width="6" height="1" fill="#FFD700"/><rect x="3" y="3" width="1" height="4" fill="#FFD700"/><rect x="12" y="3" width="1" height="4" fill="#FFD700"/><rect x="2" y="4" width="2" height="2" fill="#FFA500"/><rect x="12" y="4" width="2" height="2" fill="#FFA500"/><rect x="5" y="10" width="6" height="2" fill="#CD853F"/><rect x="4" y="12" width="8" height="2" fill="#8B4513"/><rect x="3" y="14" width="10" height="1" fill="#654321"/><rect x="7" y="4" width="2" height="3" fill="#FFFFFF"/><rect x="6" y="7" width="4" height="1" fill="#FFA500"/></svg></div>
