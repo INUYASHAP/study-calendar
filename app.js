@@ -734,7 +734,7 @@ function createTaskCard(task, completed, canMakeup, dateKey) {
                     ` : `
                         <button class="it-btn it-pause" id="it-pause-${task.id}">⏸ 暂停</button>
                     `}
-                    <button class="it-btn it-finish" id="it-finish-${task.id}">✓ 完成</button>
+                    <button class="it-btn it-finish" id="it-finish-${task.id}" disabled style="opacity:0.5;cursor:not-allowed;">⏳ 完成倒计时后领取</button>
                 </div>
             </div>
         `;
@@ -921,7 +921,7 @@ function onPhaseComplete() {
     const t = state.timer;
     const task = findTaskById(t.taskId);
     if (!task) { finishTimerInline(t.taskId); return; }
-    
+
     if (t.phase === 'work') {
         const restSec = (task.restMinutes || 0) * 60;
         if (restSec > 0) {
@@ -933,14 +933,29 @@ function onPhaseComplete() {
             updateInlineTimerDisplay();
             startTimerInterval();
         } else {
-            // 无休息阶段，直接完成
-            finishTimerInline(t.taskId);
+            // 无休息阶段，启用领取奖励按钮
+            enableRewardButton(t.taskId);
+            showToast('计时结束！点击领取奖励~');
         }
     } else {
-        // 休息阶段完成
-        finishTimerInline(t.taskId);
+        // 休息阶段完成，启用领取奖励按钮
+        enableRewardButton(t.taskId);
+        showToast('休息结束！点击领取奖励~');
     }
     save();
+}
+
+// 启用领取奖励按钮（倒计时结束后调用）
+function enableRewardButton(taskId) {
+    const finishBtn = document.getElementById(`it-finish-${taskId}`);
+    if (finishBtn) {
+        finishBtn.disabled = false;
+        finishBtn.style.opacity = '1';
+        finishBtn.style.cursor = 'pointer';
+        finishBtn.textContent = '✓ 领取奖励';
+        // 添加发光效果
+        finishBtn.classList.add('ready-to-claim');
+    }
 }
 
 function pauseTimerInline(taskId) {
@@ -966,6 +981,12 @@ function resumeTimerInline(taskId) {
 
 function finishTimerInline(taskId) {
     if (!state.timer.active || state.timer.taskId !== taskId) return;
+
+    // 检查倒计时是否已完成（phaseRemainingSeconds 必须为 0）
+    if (state.timer.phaseRemainingSeconds > 0) {
+        showToast('倒计时未结束，请等待计时完成~');
+        return;
+    }
 
     stopTimerInterval();
     const task = findTaskById(taskId);
