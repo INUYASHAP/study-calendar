@@ -6,22 +6,57 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* ===== Theme 1: Nether Refined (精调下界) - 默认 ===== */
 :root {
-    --deep-dark: #0f0f23;
-    --dark-bg: #1a1a3e;
-    --mid-dark: #22224a;
-    --panel-bg: #2a2a50;
-    --accent-cyan: #00e5ff;
-    --accent-green: #00ff88;
-    --accent-gold: #ffd700;
-    --accent-purple: #b44dff;
-    --accent-pink: #ff4da6;
+    --deep-dark: #0a0a1e;
+    --dark-bg: #141432;
+    --mid-dark: #1e1e45;
+    --panel-bg: #262656;
+    --accent-cyan: #00c8ff;
+    --accent-green: #2ecc71;
+    --accent-gold: #f1c40f;
+    --accent-purple: #9b59b6;
+    --accent-pink: #e91e63;
     --text-primary: #ffffff;
-    --text-secondary: rgba(255,255,255,0.7);
-    --text-dim: rgba(255,255,255,0.5);
-    --border-glow: rgba(0, 229, 255, 0.5);
+    --text-secondary: rgba(255,255,255,0.72);
+    --text-dim: rgba(255,255,255,0.48);
+    --border-glow: rgba(0, 200, 255, 0.4);
     --font-cn: 'ZCOOL KuaiLe', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     --font-pixel: 'Press Start 2P', 'Courier New', 'Consolas', monospace;
+}
+
+/* ===== Theme 2: Aurora Mystic (极光秘境) ===== */
+:root[data-theme="aurora"] {
+    --deep-dark: #06061a;
+    --dark-bg: #10102a;
+    --mid-dark: #181838;
+    --panel-bg: #202045;
+    --accent-cyan: #5ee7df;
+    --accent-green: #7dcea0;
+    --accent-gold: #f7dc6f;
+    --accent-purple: #bb8fce;
+    --accent-pink: #f48fb1;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255,255,255,0.7);
+    --text-dim: rgba(255,255,255,0.45);
+    --border-glow: rgba(94, 231, 223, 0.45);
+}
+
+/* ===== Theme 3: Ember Glow (暖焰) ===== */
+:root[data-theme="ember"] {
+    --deep-dark: #1a0a08;
+    --dark-bg: #2a1210;
+    --mid-dark: #3a1e18;
+    --panel-bg: #4a2a22;
+    --accent-cyan: #ff8c42;
+    --accent-green: #c0392b;
+    --accent-gold: #f39c12;
+    --accent-purple: #8e44ad;
+    --accent-pink: #e67e22;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255,255,255,0.7);
+    --text-dim: rgba(255,255,255,0.45);
+    --border-glow: rgba(255, 140, 66, 0.4);
 }
 
 html, body {
@@ -3285,6 +3320,74 @@ body {
     font-size: 14px;
     color: var(--text-secondary);
     padding: 6px 0;
+}
+
+/* ============ 主题切换 ============ */
+.theme-section {
+    margin: 0 16px 80px;
+    background: var(--panel-bg);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.theme-title {
+    font-size: 16px;
+    color: var(--accent-gold);
+    margin-bottom: 12px;
+}
+
+.theme-options {
+    display: flex;
+    gap: 12px;
+}
+
+.theme-opt {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: var(--mid-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-opt.active {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(0, 200, 255, 0.3);
+    transform: scale(1.03);
+}
+
+.theme-preview {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.2);
+}
+
+.theme-nether {
+    background: linear-gradient(135deg, #0a0a1e, #1e1e45, #00c8ff);
+}
+
+.theme-aurora {
+    background: linear-gradient(135deg, #06061a, #202045, #5ee7df);
+}
+
+.theme-ember {
+    background: linear-gradient(135deg, #1a0a08, #4a2a22, #ff8c42);
+}
+
+.theme-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.theme-opt.active .theme-label {
+    color: var(--accent-cyan);
+    font-weight: bold;
 }
 
 /* ============ 升级动画 ============ */

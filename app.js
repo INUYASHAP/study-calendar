@@ -215,6 +215,7 @@ let state = {
     currentPage: 'task',
     shopCat: 'helmet',
     todayBackpack: [],
+    theme: 'nether',
     timer: {
         active: false, taskId: null, taskName: '',
         phase: 'work', phaseRemainingSeconds: 2700,
@@ -1271,6 +1272,42 @@ function renderStats() {
         bar.innerHTML = `<div class="w-fill" style="height:${Math.max(h,3)}%"></div><div class="w-label">周${names[d.getDay()]}</div>`;
         chart.appendChild(bar);
     }
+    
+    // 绑定主题切换
+    bindThemeSwitcher();
+}
+
+// ============ 主题切换 ============
+function applyTheme(themeName) {
+    state.theme = themeName;
+    const root = document.documentElement;
+    if (themeName === 'nether') {
+        root.removeAttribute('data-theme');
+    } else {
+        root.setAttribute('data-theme', themeName);
+    }
+    // 更新UI选中状态
+    document.querySelectorAll('.theme-opt').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.themeName === themeName);
+    });
+    save();
+}
+
+function bindThemeSwitcher() {
+    const opts = document.querySelectorAll('.theme-opt');
+    opts.forEach(opt => {
+        opt.onclick = () => applyTheme(opt.dataset.themeName);
+    });
+    // 同步当前主题
+    document.querySelectorAll('.theme-opt').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.themeName === state.theme);
+    });
+}
+
+function initTheme() {
+    if (state.theme && state.theme !== 'nether') {
+        document.documentElement.setAttribute('data-theme', state.theme);
+    }
 }
 
 function getTotalDays() {
@@ -1441,6 +1478,7 @@ const DAILY_DESCS = [
 
 function init() {
     load();
+    initTheme();
     initParticles();
     bindEvents();
     
